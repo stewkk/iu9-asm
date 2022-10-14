@@ -11,10 +11,7 @@ main:
     add  rax,   rbx
 
     ;; atoi(rax)
-    dec  rsp
-    mov  byte[rsp], 0
-    dec  rsp
-    mov  byte[rsp], 10
+    push word   0x0A
     mov  r8,    10
     mov  rcx,   2
 atoi:
