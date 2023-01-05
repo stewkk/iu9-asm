@@ -18,7 +18,7 @@
         iend
 
 base:
-        dd 1000000000                  ; 10^9
+        dq 1000000000                  ; 10^9
 
         segment .bss
         buf resb 200
@@ -188,7 +188,7 @@ atoi:
 unsigned_add:
         xor rax, rax                   ; carry = 0
         xor rcx, rcx                   ; i = 0
-        mov r10d, dword[base]          ; base
+        mov r10, qword[base]           ; base
         mov ebx, dword[rdi+longint_sz]
         cmp ebx, dword[rsi+longint_sz]
         cmovl ebx, dword[rsi+longint_sz] ; ebx = max(rdi.sz, rsi.sz)
@@ -230,7 +230,7 @@ unsigned_add:
 unsigned_sub:
         xor rax, rax                   ; carry = 0
         xor rcx, rcx                   ; i = 0
-        mov r10d, dword[base]          ; base
+        mov r10, qword[base]           ; base
 .for:
         cmp ecx, dword[rsi+longint_sz]
         jl .forbody
@@ -301,7 +301,7 @@ unsigned_mul:
         add r10, r11
         add rax, r10
         xor rdx, rdx
-        idiv dword[base]
+        idiv qword[base]
         mov dword[r12+4*rbx], edx
         inc ebx
         jmp .inner_for
@@ -369,7 +369,7 @@ less_than:
         mov rax, 1
         ret
 
-; ;; TODO: signed_mul(longint* rdi, longint* rsi)
+; ;; signed_mul(longint* rdi, longint* rsi)
 signed_mul:
         xor rax, rax
         mov al, byte[rdi+longint_sign]
