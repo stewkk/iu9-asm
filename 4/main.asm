@@ -41,7 +41,7 @@ main:
 ; ;; .mul:
         lea rdi, [lhs]
         lea rsi, [rhs]
-        call unsigned_mul
+        call signed_mul
 
         lea rdi, [res]
         call output
@@ -345,7 +345,6 @@ signed_add:
 
 ; ;; less_than(longint* rdi, longint* rsi) -> bool
 less_than:
-; ;; FIXME: сравнение 0 с 0 работает неверно!
         xor rcx, rcx
         mov ecx, dword[rdi+longint_sz]
         cmp ecx, dword[rsi+longint_sz] ; rdi.sz < rsi.sz
@@ -371,3 +370,12 @@ less_than:
         ret
 
 ; ;; TODO: signed_mul(longint* rdi, longint* rsi)
+signed_mul:
+        xor rax, rax
+        mov al, byte[rdi+longint_sign]
+        cmp byte[rsi+longint_sign], al
+        je .skip
+        mov byte[res+longint_sign], 1
+.skip:
+        call unsigned_mul
+        ret
