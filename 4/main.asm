@@ -324,38 +324,22 @@ unsigned_mul:
 
 ; ;; signed_add(longint* rdi, longint* rsi) -> longint* res
 signed_add:
-        cmp byte[rdi+longint_sign], 0
-        jnz .negative
+        xor rax, rax
+        mov al, byte[rdi+longint_sign]
+        cmp byte[rsi+longint_sign], al
+        jz .add
+        call less_than
+        cmp rax, 0
+        je .sub
+        xchg rdi, rsi
+        jmp .sub
 
-        cmp byte[rsi+longint_sign], 0
-        jnz .positive_negative
-; ;; positive_positive:
+.add:
         call unsigned_add
         mov rax, rdi
         ret
-.positive_negative:
-        call less_than
-        cmp rax, 0
-        je .skip
-        xchg rdi, rsi
-.skip:
+.sub:
         call unsigned_sub
-        mov rax, rdi
-        ret
-.negative:
-        cmp byte[rsi+longint_sign], 0
-        jnz .negative_negative
-; ;; negative_positive:
-        call less_than
-        cmp rax, 0
-        je .skip2
-        xchg rdi, rsi
-.skip2:
-        call unsigned_sub
-        mov rax, rdi
-        ret
-.negative_negative:
-        call unsigned_add
         mov rax, rdi
         ret
 
