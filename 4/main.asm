@@ -32,9 +32,13 @@ main:
 
         lea rdi, [lhs]
         call input
+        cmp rax, 1
+        je .error
 
         lea rdi, [rhs]
         call input
+        cmp rax, 1
+        je .error
 
         cmp r15, 1                     ; argc
         je .sum
@@ -54,7 +58,11 @@ main:
         call output
 
 .exit:
-        xor eax, eax
+        xor rax, rax
+        leave
+        ret
+.error:
+        mov rax, 1
         leave
         ret
 
@@ -113,7 +121,6 @@ output:
         ret
 
 ; ;; input(longint* rdi)
-; ;; TODO: обнаружение недопустимых символов
 ; ;; TODO: ввод в шестнадцатеричной системе счисления
 input:
         push rbp
@@ -131,16 +138,33 @@ input:
         call scanf
 
         lea rdi, [buf]
-        lea r9, [buf]
-        cmp byte[buf], '-'
-        jne .skip
+        cmp byte[rdi], '-'
+        jne .skip_minus
         inc rdi
-        inc r9
         mov byte[r12+longint_sign], 1
-.skip:
-        call strlen
-        mov rcx, rax
+.skip_minus:
+        cmp word[rdi], 0x7830
+        jne .skip_hex
+        add rdi, 2
+        mov rsi, r12
+        call input_hex
+        leave
+        ret
+.skip_hex:
 
+        xor rcx, rcx
+.more:
+        cmp byte[rdi+rcx], 0
+        jz .end
+        cmp byte[rdi+rcx], '0'
+        jl .error
+        cmp byte[rdi+rcx], '9'
+        jg .error
+        inc rcx
+        jmp .more
+        .end
+
+        mov r9, rdi
         xor r8, r8
         cmp rcx, 0
 .for:
@@ -159,9 +183,15 @@ input:
 .endfor:
 
         mov dword[r12+longint_sz], r8d
-
+        xor rax, rax
         leave
         ret
+.error:
+        mov rax, 1
+        leave
+        ret
+
+input_hex:
 
 strlen:
         mov rcx, -1
