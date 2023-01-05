@@ -16,15 +16,19 @@
         iend
         res istruc longint
         iend
+
 base:
         dd 1000000000                  ; 10^9
 
         segment .bss
         buf resb 200
+
         segment .text
 main:
         push rbp
         mov rbp, rsp
+
+        mov r15, rdi                   ; argc
 
         lea rdi, [lhs]
         call input
@@ -32,13 +36,24 @@ main:
         lea rdi, [rhs]
         call input
 
+        cmp r15, 1                     ; argc
+        je .sum
+; ;; .mul:
         lea rdi, [lhs]
         lea rsi, [rhs]
         call unsigned_mul
 
         lea rdi, [res]
         call output
+        jmp .exit
+.sum:
+        lea rdi, [lhs]
+        lea rsi, [rhs]
+        call signed_add
+        mov rdi, rax
+        call output
 
+.exit:
         xor eax, eax
         leave
         ret
@@ -131,8 +146,8 @@ input:
 .for:
         jl .endfor
 
-        mov byte[buf+rcx], 0
-        lea rdi, [buf+rcx-9]
+        mov byte[r9+rcx], 0
+        lea rdi, [r9+rcx-9]
         cmp rcx, 9
         cmovl rdi, r9
         call atoi
@@ -158,9 +173,11 @@ strlen:
 
 atoi:
         xor rax, rax
+        xor r14, r14
 .more:
         imul eax, 10
-        add al, byte[rdi]
+        mov r14b, byte[rdi]
+        add eax, r14d
         sub eax, '0'
         inc rdi
         cmp byte[rdi], 0
@@ -304,3 +321,69 @@ unsigned_mul:
         jmp .while
 .endwhile:
         ret
+
+; ;; signed_add(longint* rdi, longint* rsi) -> longint* res
+signed_add:
+        cmp byte[rdi+longint_sign], 0
+        jnz .negative
+
+        cmp byte[rsi+longint_sign], 0
+        jnz .positive_negative
+; ;; positive_positive:
+        call unsigned_add
+        mov rax, rdi
+        ret
+.positive_negative:
+        call less_than
+        cmp rax, 0
+        je .skip
+        xchg rdi, rsi
+.skip:
+        call unsigned_sub
+        mov rax, rdi
+        ret
+.negative:
+        cmp byte[rsi+longint_sign], 0
+        jnz .negative_negative
+; ;; negative_positive:
+        call less_than
+        cmp rax, 0
+        je .skip2
+        xchg rdi, rsi
+.skip2:
+        call unsigned_sub
+        mov rax, rdi
+        ret
+.negative_negative:
+        call unsigned_add
+        mov rax, rdi
+        ret
+
+; ;; less_than(longint* rdi, longint* rsi) -> bool
+less_than:
+; ;; FIXME: сравнение 0 с 0 работает неверно!
+        xor rcx, rcx
+        mov ecx, dword[rdi+longint_sz]
+        cmp ecx, dword[rsi+longint_sz] ; rdi.sz < rsi.sz
+        jl .less
+        jg .not_less
+        mov edx, dword[rsi+longint_sz]
+.more:
+        dec rcx
+        dec edx
+        cmp rcx, -1
+        je .not_less
+        mov ebx, dword[rdi+4*rcx]
+        xor rdx, rdx
+        cmp ebx, dword[rsi+4*rdx]
+        jl .less
+        jg .not_less
+        jmp .more
+.not_less:
+        mov rax, 0
+        ret
+.less:
+        mov rax, 1
+        ret
+
+; ;; TODO: signed_mul(longint* rdi, longint* rsi)

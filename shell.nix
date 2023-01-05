@@ -9,6 +9,7 @@ mkShell {
     gdb
     gcc
     nasmfmt
+    python311
 
     figlet
     # keep this line if you use bash
