@@ -1,0 +1,39 @@
+%ifndef MACROS_MAC
+    %define MACROS_MAC
+
+    %macro begin 0
+    push rbp
+    mov rbp, rsp
+    %endmacro
+
+    %macro return 1
+    mov rax, %1
+    leave
+    ret
+    %endmacro
+
+    %macro parse_argv 3
+    mov r15, qword[rsi+8]
+    mov %1, byte[r15]
+    mov r15, qword[rsi+16]
+    mov %2, byte[r15]
+
+    xor %3, %3
+    cmp rdi, 4
+    cmovz %3, qword[rsi+24]
+    %endmacro
+
+    %macro replace 4
+    cld
+    mov rcx, %4
+    mov rsi, %3
+%%more: lodsb
+    cmp al, %1
+    jne %%skip
+    mov byte[rsi-1], %2
+%%skip:
+    sub rcx, 1
+    jnz %%more
+    %endmacro
+
+%endif
