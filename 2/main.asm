@@ -32,10 +32,13 @@ fill:
         mov rbp, rsp
         sub rsp, 16
         xor rcx, rcx
-        .more mov [rsp+.i], rcx
+.more:
+        mov [rsp+.i], rcx
+        xor rax, rax
         call random
         mov rcx, [rsp+.i]
         mov r10d, 20
+        xor rdx, rdx
         idiv r10d
         mov [arr+rcx*4], edx
         inc rcx

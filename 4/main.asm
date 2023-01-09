@@ -121,7 +121,6 @@ output:
         ret
 
 ; ;; input(longint* rdi)
-; ;; TODO: ввод в шестнадцатеричной системе счисления
 input:
         push rbp
         mov rbp, rsp
@@ -143,14 +142,6 @@ input:
         inc rdi
         mov byte[r12+longint_sign], 1
 .skip_minus:
-        cmp word[rdi], 0x7830
-        jne .skip_hex
-        add rdi, 2
-        mov rsi, r12
-        call input_hex
-        leave
-        ret
-.skip_hex:
 
         xor rcx, rcx
 .more:
@@ -190,8 +181,6 @@ input:
         mov rax, 1
         leave
         ret
-
-input_hex:
 
 strlen:
         mov rcx, -1
